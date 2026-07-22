@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+venv/
+.venv/
+*.egg-info/
+
+# Local simulated-run database — never commit real training data
+data/*.db
+
+# Env files (used from Day 4 onward for API config)
+.env
