@@ -66,6 +66,47 @@
     </div>
   </section>
 
+  <!-- LIVE SIMULATOR -->
+  <section id="simulator" class="simulator wrap">
+    <p class="section-eyebrow">Live in your browser</p>
+    <h2>Run the search yourself</h2>
+    <p class="section-lede">Set a target PIN and watch the exact pass order from <code>PIN-Probability-Sim.py</code> execute live — ported line for line, no server involved.</p>
+
+    <div class="sim-panel">
+      <div class="sim-controls">
+        <label class="sim-field">
+          <span>Target PIN</span>
+          <input type="text" id="target-pin" maxlength="4" inputmode="numeric" pattern="[0-9]{4}" value="1948">
+        </label>
+        <button class="btn btn-ghost btn-sm" id="randomize-pin" type="button">Randomize</button>
+        <button class="btn btn-primary btn-sm" id="start-sim" type="button">Start search</button>
+        <button class="btn btn-ghost btn-sm" id="reset-sim" type="button" disabled>Reset</button>
+      </div>
+
+      <div class="sim-readout-row">
+        <div class="sim-readout">
+          <span class="sim-readout-label">current attempt</span>
+          <span class="sim-readout-value" id="sim-current-pin">····</span>
+        </div>
+        <div class="sim-readout">
+          <span class="sim-readout-label">attempts</span>
+          <span class="sim-readout-value" id="sim-attempt-count">0</span>
+        </div>
+        <div class="sim-readout">
+          <span class="sim-readout-label">elapsed</span>
+          <span class="sim-readout-value" id="sim-elapsed">0.00s</span>
+        </div>
+      </div>
+
+      <pre class="sim-log" id="sim-log" aria-live="polite">Set a target PIN and press "Start search".</pre>
+
+      <div class="sim-result" id="sim-result" hidden>
+        <p class="sim-result-headline" id="sim-result-headline"></p>
+        <p class="sim-result-detail" id="sim-result-detail"></p>
+      </div>
+    </div>
+  </section>
+
   <!-- HOW IT WORKS -->
   <section id="how" class="how wrap">
     <p class="section-eyebrow">The search order</p>
@@ -125,7 +166,7 @@
         <h3>Day 1 — Shell &amp; design system</h3>
         <p>Hero, pattern breakdown, weak-PIN reference grid.</p>
       </div>
-      <div class="roadmap-card">
+      <div class="roadmap-card is-live">
         <span class="status-dot"></span>
         <h3>Day 2 — Live simulator</h3>
         <p>Ported search logic runs in-browser with real-time attempt readout.</p>
