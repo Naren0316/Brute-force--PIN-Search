@@ -433,6 +433,99 @@ code {
 }
 .pin-chip .bar-fill { height: 100%; background: var(--danger); }
 
+/* safe / least-likely variant */
+.least-likely {
+  margin-top: 56px;
+  padding-top: 40px;
+  border-top: 1px solid var(--line);
+}
+.least-likely h3 { font-size: 1.2rem; margin: 0 0 8px; }
+.least-likely-lede { color: var(--text-muted); max-width: 60ch; margin: 0 0 24px; }
+.pin-grid-safe .pin-chip:hover { border-color: var(--brass); }
+.pin-grid-safe .pin-chip .bar-fill { background: var(--brass); }
+
+/* ============================================
+   STATS / CHART
+   ============================================ */
+.stats { padding: 80px 28px; border-top: 1px solid var(--line); }
+
+.chart-panel {
+  background: var(--bg-panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: 28px;
+}
+
+.chart-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.chart-row {
+  display: grid;
+  grid-template-columns: 220px 1fr 90px;
+  align-items: center;
+  gap: 14px;
+}
+.chart-row-label {
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+.chart-row-track {
+  height: 22px;
+  background: var(--bg-void);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.chart-row-fill {
+  height: 100%;
+  background: var(--brass-dim);
+  border-right: 2px solid var(--brass);
+  transition: background 0.2s var(--ease), border-color 0.2s var(--ease);
+}
+.chart-row-value {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--text-faint);
+  text-align: right;
+}
+.chart-row.is-match .chart-row-label { color: var(--brass-bright); }
+.chart-row.is-match .chart-row-fill { background: var(--danger-dim); border-color: var(--danger); }
+.chart-row.is-match .chart-row-value { color: var(--danger); font-weight: 700; }
+
+.stats-note {
+  margin-top: 20px;
+  border: 1px solid var(--brass-dim);
+  background: linear-gradient(180deg, var(--bg-panel-raised), var(--bg-panel));
+  border-radius: var(--radius-sm);
+  padding: 18px 20px;
+}
+.stats-note-title {
+  font-family: var(--font-mono);
+  color: var(--brass-bright);
+  margin: 0 0 12px;
+  font-size: 0.92rem;
+}
+.stats-note-table {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 10px;
+}
+.stats-note-cell {
+  background: var(--bg-void);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+}
+.stats-note-cell .label { color: var(--text-faint); display: block; margin-bottom: 4px; }
+.stats-note-cell .value { color: var(--text-primary); font-weight: 700; }
+.stats-note-cell.is-match { border-color: var(--danger); }
+.stats-note-cell.is-match .value { color: var(--danger); }
+
 /* ============================================
    ROADMAP
    ============================================ */
@@ -499,4 +592,6 @@ code {
 @media (max-width: 480px) {
   .wrap { padding: 0 18px; }
   .pass { grid-template-columns: 40px 1fr; gap: 14px; }
+  .chart-row { grid-template-columns: 1fr; gap: 4px; }
+  .chart-row-value { text-align: left; }
 }
