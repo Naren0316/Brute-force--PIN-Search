@@ -119,6 +119,105 @@ function drawDialTicks() {
 }
 
 /* ============================================
+   WEAK PIN GRID + LEAST-LIKELY GRID
+   ============================================ */
+function renderPinGrid() {
+  const grid = document.getElementById("pin-grid");
+  if (!grid) return;
+
+  grid.innerHTML = VERIFIED_TOP_20.map((pin, idx) => {
+    const rank = idx + 1;
+    const fillPct = Math.max(100 - idx * 4.5, 8); // purely visual weighting, rank-based
+    return `
+      <div class="pin-chip">
+        <span class="digits">${pin}</span>
+        <div class="bar-track"><div class="bar-fill" style="width:${fillPct}%"></div></div>
+        <span class="rank">rank #${rank}</span>
+      </div>
+    `;
+  }).join("");
+}
+
+function renderSafePinGrid() {
+  const grid = document.getElementById("safe-pin-grid");
+  if (!grid) return;
+
+  grid.innerHTML = LEAST_LIKELY.map((pin, idx) => {
+    // inverted weighting: these are least likely, so bar reflects rarity (short = rare)
+    const fillPct = Math.max(30 - idx * 1.1, 6);
+    return `
+      <div class="pin-chip">
+        <span class="digits">${pin}</span>
+        <div class="bar-track"><div class="bar-fill" style="width:${fillPct}%"></div></div>
+        <span class="rank">bottom #${idx + 1}</span>
+      </div>
+    `;
+  }).join("");
+}
+
+/* ============================================
+   GROUP SIZE CHART
+   ============================================ */
+const FULL_BRUTE_LABEL = "Full brute-force";
+
+function chartData() {
+  const groups = buildPriorityGroups();
+  const tried = new Set();
+  const rows = [];
+
+  for (const [name, pins] of groups) {
+    let netNew = 0;
+    for (const pin of pins) {
+      if (!tried.has(pin)) {
+        tried.add(pin);
+        netNew++;
+      }
+    }
+    rows.push([name, netNew]);
+  }
+
+  rows.push([FULL_BRUTE_LABEL, 10000 - tried.size]);
+  return rows;
+}
+
+function renderGroupChart(matchGroup) {
+  const el = document.getElementById("group-chart");
+  if (!el) return;
+
+  const data = chartData();
+  const maxLog = Math.log10(Math.max(...data.map(([, n]) => n)) + 1);
+
+  el.innerHTML = data.map(([name, count]) => {
+    const pct = Math.max((Math.log10(count + 1) / maxLog) * 100, 3);
+    const isMatch = name === matchGroup;
+    return `
+      <div class="chart-row${isMatch ? " is-match" : ""}">
+        <span class="chart-row-label">${name}</span>
+        <div class="chart-row-track"><div class="chart-row-fill" style="width:${pct.toFixed(1)}%"></div></div>
+        <span class="chart-row-value">${count.toLocaleString()}</span>
+      </div>
+    `;
+  }).join("");
+}
+
+function renderStatsNote(groupCounts, matchGroup, matchAttempt) {
+  const note = document.getElementById("stats-note");
+  const title = document.getElementById("stats-note-title");
+  const table = document.getElementById("stats-note-table");
+  if (!note) return;
+
+  title.textContent = `This run: ${matchAttempt} total attempts across ${Object.keys(groupCounts).length} pass${Object.keys(groupCounts).length > 1 ? "es" : ""}`;
+  table.innerHTML = Object.entries(groupCounts).map(([name, count]) => `
+    <div class="stats-note-cell${name === matchGroup ? " is-match" : ""}">
+      <span class="label">${name}</span>
+      <span class="value">${count} attempt${count === 1 ? "" : "s"}</span>
+    </div>
+  `).join("");
+
+  note.hidden = false;
+}
+
+/* ============================================
    HERO DIAL
    Idles through the verified top-20 until the
    live simulator starts, then mirrors real
@@ -167,6 +266,7 @@ const sim = {
   startTime: 0,
   lastGroup: null,
   lastGroupWasBruteForce: false,
+  groupCounts: {},
 };
 
 function simEls() {
@@ -216,6 +316,8 @@ function handleStep(step) {
   els.elapsed.textContent = ((performance.now() - sim.startTime) / 1000).toFixed(2) + "s";
   updateDialReadout(step.pin, step.attempt);
 
+  sim.groupCounts[step.group] = (sim.groupCounts[step.group] || 0) + 1;
+
   if (step.group !== sim.lastGroup) {
     appendLog(`<span class="log-group">↳ Trying: ${step.group} (${step.groupSize} candidates)</span>`);
     sim.lastGroup = step.group;
@@ -254,6 +356,8 @@ function finishSim(found, step) {
       detail += ` Note: ${step.pin} is also one of the verified least-common real-world PINs (bottom ${leastIdx + 1}).`;
     }
     els.resultDetail.textContent = detail;
+    renderGroupChart(step.group);
+    renderStatsNote(sim.groupCounts, step.group, step.attempt);
   } else {
     appendLog("PIN not found.");
     els.result.hidden = false;
@@ -299,6 +403,7 @@ function startSim() {
   sim.startTime = performance.now();
   sim.lastGroup = null;
   sim.lastGroupWasBruteForce = false;
+  sim.groupCounts = {};
 
   els.log.textContent = "";
   els.result.hidden = true;
@@ -306,6 +411,9 @@ function startSim() {
   els.startBtn.textContent = "Searching…";
   els.resetBtn.disabled = true;
   els.input.disabled = true;
+
+  renderGroupChart();
+  document.getElementById("stats-note").hidden = true;
 
   requestAnimationFrame(driveSimFrame);
 }
@@ -325,31 +433,13 @@ function wireSimulator() {
     sim.running = false;
     resetSimUI();
     startDialIdleAnimation();
+    renderGroupChart();
+    document.getElementById("stats-note").hidden = true;
   });
 
   els.input.addEventListener("input", () => {
     els.input.value = els.input.value.replace(/[^0-9]/g, "").slice(0, 4);
   });
-}
-
-/* ============================================
-   WEAK PIN GRID
-   ============================================ */
-function renderPinGrid() {
-  const grid = document.getElementById("pin-grid");
-  if (!grid) return;
-
-  grid.innerHTML = VERIFIED_TOP_20.map((pin, idx) => {
-    const rank = idx + 1;
-    const fillPct = Math.max(100 - idx * 4.5, 8); // purely visual weighting, rank-based
-    return `
-      <div class="pin-chip">
-        <span class="digits">${pin}</span>
-        <div class="bar-track"><div class="bar-fill" style="width:${fillPct}%"></div></div>
-        <span class="rank">rank #${rank}</span>
-      </div>
-    `;
-  }).join("");
 }
 
 /* ============================================
@@ -373,6 +463,8 @@ document.addEventListener("DOMContentLoaded", () => {
   drawDialTicks();
   startDialIdleAnimation();
   renderPinGrid();
+  renderSafePinGrid();
+  renderGroupChart();
   wireSimulator();
   wireHeroButton();
 });
