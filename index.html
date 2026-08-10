@@ -23,6 +23,7 @@
     <nav class="topnav">
       <a href="#how">How it works</a>
       <a href="#weak">Weak PINs</a>
+      <a href="#stats">Stats</a>
       <a href="#roadmap">Roadmap</a>
       <a class="repo-link" href="https://github.com/Naren0316/Brute-force--PIN-Search" target="_blank" rel="noopener">
         Source <span aria-hidden="true">↗</span>
@@ -154,6 +155,32 @@
     <div class="pin-grid" id="pin-grid">
       <!-- populated by script.js -->
     </div>
+
+    <div class="least-likely">
+      <h3>21 PINs least likely to be guessed first</h3>
+      <p class="least-likely-lede">These sit at the bottom of real-world frequency data — no obvious pattern, so they're the last values a patterned search reaches.</p>
+      <div class="pin-grid pin-grid-safe" id="safe-pin-grid">
+        <!-- populated by script.js -->
+      </div>
+    </div>
+  </section>
+
+  <!-- STATS -->
+  <section id="stats" class="stats wrap">
+    <p class="section-eyebrow">By the numbers</p>
+    <h2>How the search space breaks down</h2>
+    <p class="section-lede">Each pass covers a tiny slice of the full 10,000-value space — bar length is log-scaled so the smaller groups stay visible next to the brute-force tail.</p>
+
+    <div class="chart-panel">
+      <div class="chart-bars" id="group-chart">
+        <!-- populated by script.js -->
+      </div>
+    </div>
+
+    <div class="stats-note" id="stats-note" hidden>
+      <p class="stats-note-title" id="stats-note-title"></p>
+      <div class="stats-note-table" id="stats-note-table"></div>
+    </div>
   </section>
 
   <!-- ROADMAP (transparent build-in-public status) -->
@@ -171,7 +198,7 @@
         <h3>Day 2 — Live simulator</h3>
         <p>Ported search logic runs in-browser with real-time attempt readout.</p>
       </div>
-      <div class="roadmap-card">
+      <div class="roadmap-card is-live">
         <span class="status-dot"></span>
         <h3>Day 3 — Stats views</h3>
         <p>Charts for attempts-per-group and least-common PIN rankings.</p>
