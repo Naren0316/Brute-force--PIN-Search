@@ -321,6 +321,8 @@ function handleStep(step) {
   if (step.group !== sim.lastGroup) {
     appendLog(`<span class="log-group">↳ Trying: ${step.group} (${step.groupSize} candidates)</span>`);
     sim.lastGroup = step.group;
+    const statusEl = document.getElementById("sim-status-live");
+    if (statusEl) statusEl.textContent = `Now trying: ${step.group}`;
   }
 
   const isBruteForce = step.group === "Full brute-force";
@@ -340,6 +342,7 @@ function finishSim(found, step) {
   clearInterval(dialIdleTimer);
   const els = simEls();
   const elapsedSec = (performance.now() - sim.startTime) / 1000;
+  const statusEl = document.getElementById("sim-status-live");
 
   els.startBtn.disabled = false;
   els.startBtn.textContent = "Start search";
@@ -358,11 +361,13 @@ function finishSim(found, step) {
     els.resultDetail.textContent = detail;
     renderGroupChart(step.group);
     renderStatsNote(sim.groupCounts, step.group, step.attempt);
+    if (statusEl) statusEl.textContent = `PIN cracked: ${step.pin}, found via ${step.group}, ${step.attempt} attempts, ${elapsedSec.toFixed(2)} seconds.`;
   } else {
     appendLog("PIN not found.");
     els.result.hidden = false;
     els.resultHeadline.textContent = "PIN not found";
     els.resultDetail.textContent = "The full 0000–9999 space was exhausted without a match — this shouldn't happen for a valid 4-digit target.";
+    if (statusEl) statusEl.textContent = "Search finished without finding the PIN.";
   }
 }
 
@@ -440,6 +445,13 @@ function wireSimulator() {
   els.input.addEventListener("input", () => {
     els.input.value = els.input.value.replace(/[^0-9]/g, "").slice(0, 4);
   });
+
+  els.input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && !sim.running) {
+      e.preventDefault();
+      startSim();
+    }
+  });
 }
 
 /* ============================================
@@ -457,6 +469,34 @@ function wireHeroButton() {
 }
 
 /* ============================================
+   MOBILE NAV
+   ============================================ */
+function wireMobileNav() {
+  const toggle = document.getElementById("nav-toggle");
+  const nav = document.getElementById("topnav");
+  if (!toggle || !nav) return;
+
+  const closeNav = () => {
+    toggle.setAttribute("aria-expanded", "false");
+    nav.classList.remove("is-open");
+  };
+
+  toggle.addEventListener("click", () => {
+    const open = toggle.getAttribute("aria-expanded") === "true";
+    toggle.setAttribute("aria-expanded", String(!open));
+    nav.classList.toggle("is-open", !open);
+  });
+
+  nav.querySelectorAll("a").forEach((link) => {
+    link.addEventListener("click", closeNav);
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") closeNav();
+  });
+}
+
+/* ============================================
    INIT
    ============================================ */
 document.addEventListener("DOMContentLoaded", () => {
@@ -467,4 +507,5 @@ document.addEventListener("DOMContentLoaded", () => {
   renderGroupChart();
   wireSimulator();
   wireHeroButton();
+  wireMobileNav();
 });
