@@ -12,15 +12,21 @@
 </head>
 <body>
 
+<a class="skip-link" href="#top">Skip to main content</a>
+
 <div class="grain"></div>
 
 <header class="topbar">
   <div class="wrap topbar-inner">
     <a class="brand" href="#top">
-      <span class="brand-mark">⌘</span>
+      <span class="brand-mark" aria-hidden="true">⌘</span>
       <span class="brand-text">PIN<span class="dim">/</span>SEARCH</span>
     </a>
-    <nav class="topnav">
+    <button class="nav-toggle" id="nav-toggle" type="button" aria-expanded="false" aria-controls="topnav">
+      <span class="visually-hidden">Menu</span>
+      <span class="nav-toggle-bars" aria-hidden="true"></span>
+    </button>
+    <nav class="topnav" id="topnav">
       <a href="#how">How it works</a>
       <a href="#weak">Weak PINs</a>
       <a href="#stats">Stats</a>
@@ -99,7 +105,8 @@
         </div>
       </div>
 
-      <pre class="sim-log" id="sim-log" aria-live="polite">Set a target PIN and press "Start search".</pre>
+      <pre class="sim-log" id="sim-log" aria-live="off">Set a target PIN and press "Start search".</pre>
+      <p class="visually-hidden" id="sim-status-live" aria-live="polite" aria-atomic="true"></p>
 
       <div class="sim-result" id="sim-result" hidden>
         <p class="sim-result-headline" id="sim-result-headline"></p>
@@ -203,7 +210,7 @@
         <h3>Day 3 — Stats views</h3>
         <p>Charts for attempts-per-group and least-common PIN rankings.</p>
       </div>
-      <div class="roadmap-card">
+      <div class="roadmap-card is-live">
         <span class="status-dot"></span>
         <h3>Day 4 — Polish &amp; accessibility</h3>
         <p>Responsive pass, focus states, reduced-motion support.</p>
