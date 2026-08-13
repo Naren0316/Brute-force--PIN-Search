@@ -1,74 +1,68 @@
-# PIN Security Research Platform
+# Brute-force--PIN-Search
 
-A cybersecurity education and PIN-security-awareness platform: it analyzes
-how predictable common 4-digit PINs are, simulates attack strategies
-against **local, self-contained target values**, and models how lockout
-policies defend against those attacks — with a full backend engine and a
-SOC/terminal-styled dashboard.
+Educational project that simulates 4-digit PIN guessing strategies using real-world PIN frequency patterns and brute-force search. Built for cybersecurity learning, statistics, and PIN-security awareness. Everything runs locally — **no real devices, accounts, or services are targeted.**
 
-> **Scope & disclaimer:** This project never connects to, targets, or
-> interacts with any real device, account, or external authentication
-> system. Every "vault" is a value you configure yourself, entirely
-> in-process or in a local SQLite file. It exists to teach *why* certain
-> PINs are dangerous and *why* lockout policies matter — not to unlock
-> anything real.
+**[Live demo →](https://naren0316.github.io/Brute-force--PIN-Search/)**
+*(link goes live once GitHub Pages is enabled — see Deploying below)*
 
-## Build plan (5 days)
+---
 
-| Day | Focus | Deliverable |
-|-----|-------|-------------|
-| **1** | Pattern Intelligence Engine (this drop) | PIN pattern classifier, entropy/strength scorer, simulated vault, SQLite attempt logger, full test suite |
-| 2 | Attack Simulation + Lockout Engine | Multi-strategy attack runner (priority-weighted → exhaustive) against the local vault; configurable lockout/backoff policy simulator |
-| 3 | Statistics & Reporting Engine | Cross-run analytics, PIN strength batch analysis, exportable training-report generator |
-| 4 | API Layer | FastAPI service exposing all engines (REST + WebSocket for live attack progress), OpenAPI docs, Dockerfile |
-| 5 | Frontend | Dark, SOC-style dashboard: live attack visualizer, lockout simulator UI, stats dashboard, polish & deploy |
+## What's in this repo
 
-## Day 1 — what's in this drop
+| File | What it is |
+|---|---|
+| `PIN-Probability-Sim.py` | The original Python simulation: builds priority groups from real PIN-frequency data, then runs a brute-force search in that order. |
+| `index.html` / `style.css` / `script.js` | A browser front end for the same idea — the JS port mirrors `crack_pin()` group-for-group, attempt-for-attempt. |
+| `.github/workflows/deploy.yml` | Auto-deploys the static front end to GitHub Pages on every push to `main`. |
 
-```
-backend/
-  pattern_engine.py   # Classifies any 4-digit PIN into a likelihood category + weight
-  entropy.py           # Shannon entropy + pattern-penalty strength scoring (0-100, risk tier)
-  vault.py              # SimulatedVault — local in-memory target, attempt counter, lock state
-  attempt_log.py       # SQLite-backed logging of every simulated attempt
-  config.py            # Central tunables (scoring weights, default lockout policy)
-tests/                  # 20 unit tests covering all Day 1 modules
-demo.py                 # Runs everything end-to-end against a local demo vault
-```
+## The front end
 
-### Run it
+A dark "vault dossier"-themed site that turns the simulation into something you can watch happen:
+
+- **Live simulator** — set any 4-digit target PIN and watch the real search order run in your browser: verified top-20 → extended common → repeated digits → sequential patterns → likely years → repeated pairs → full brute force.
+- **Weak-PIN reference grid** — the 20 most common real-world PINs, and the 21 least common, side by side.
+- **Stats view** — a log-scaled chart of how the 10,000-value space splits across passes, with a live breakdown of exactly how many attempts each pass took on your last run.
+- Fully responsive, keyboard-navigable, and respects `prefers-reduced-motion`.
+
+No build step, no dependencies — it's plain HTML/CSS/JS.
+
+### Running it locally
 
 ```bash
-pip install -r requirements.txt
-python demo.py
+git clone https://github.com/Naren0316/Brute-force--PIN-Search.git
+cd Brute-force--PIN-Search
+python3 -m http.server 8000
+# open http://localhost:8000
 ```
 
-### Run the tests
+Or just open `index.html` directly in a browser.
+
+### Running the original Python simulation
 
 ```bash
-pytest -q
+python3 PIN-Probability-Sim.py
 ```
 
-## Design notes
+## Deploying (GitHub Pages)
 
-- **Pattern engine**: PINs are classified into 11 categories (top verified
-  common PINs, keypad geometric shapes, repeated digits, sequences,
-  repeated pairs, palindromes, likely years, date-like, etc.), each with
-  a relative likelihood weight. `build_priority_queue()` produces the
-  full 10,000-PIN space ordered by descending guessability — this is the
-  candidate order Day 2's attack engine will consume.
-- **Strength scoring** deliberately weights pattern predictability (70%)
-  over raw Shannon entropy (30%). A PIN like `1234` has *maximal* digit
-  entropy (four unique digits) but is one of the most guessed PINs that
-  exists — predictability, not digit variety, is what should drive the
-  risk score.
-- **SimulatedVault** never exposes its target PIN and only compares
-  values passed to `try_pin()`. It supports a `lock()` state so Day 2's
-  lockout-policy simulator can freeze it after N attempts.
-- **Attempt logging** is SQLite-backed (`data/attempt_log.db`, gitignored)
-  so Day 3's reporting engine can query full run history — timing,
-  pattern category hit, and outcome per attempt.
+This repo includes a workflow that deploys automatically — you only need to flip one setting:
+
+1. Go to **Settings → Pages** in this repository.
+2. Under **Build and deployment**, set **Source** to **GitHub Actions**.
+3. Push to `main` (or re-run the *Deploy to GitHub Pages* workflow from the **Actions** tab).
+4. Your site will be live at `https://<your-username>.github.io/Brute-force--PIN-Search/` within a minute or two.
+
+No further configuration needed — `.github/workflows/deploy.yml` handles the build and publish.
+
+## Future plans
+
+This project started as a local simulation for educational purposes and is now growing into a small interactive teaching tool. Planned next steps:
+
+- Simulating additional authentication mechanisms (lockout policies, rate limiting)
+- Testing PIN strength against different attack strategies beyond the current pass order
+- Expanding the stats view with historical run comparisons
+- Continued development for cybersecurity education and defensive security research
 
 ## License
 
-Educational / research use.
+No license file yet — all rights reserved by default until one is added. If you intend for this to be reused or contributed to, consider adding an [MIT](https://choosealicense.com/licenses/mit/) or similar license.
