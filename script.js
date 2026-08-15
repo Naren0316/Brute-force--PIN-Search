@@ -1,8 +1,6 @@
 /* ============================================
-   DATA + SEARCH LOGIC
-   Ported directly from PIN-Probability-Sim.py
-   so the browser demo matches the real script
-   pass-for-pass.
+   DATA — mirrors PIN-Probability-Sim.py
+   (real-world verified top-20 leaked PIN frequency)
    ============================================ */
 const VERIFIED_TOP_20 = [
   "1234", "1111", "0000", "1212", "7777",
@@ -26,11 +24,14 @@ const LEAST_LIKELY = [
   "8068",
 ];
 
+/* ============================================
+   SEARCH LOGIC — ported from PIN-Probability-Sim.py
+   ============================================ */
 function buildPriorityGroups() {
   const groups = [];
 
-  groups.push(["VERIFIED top 20 (real study data)", VERIFIED_TOP_20]);
-  groups.push(["EXTENDED known-common (documented, unranked)", EXTENDED_COMMON]);
+  groups.push(["Verified top 20", VERIFIED_TOP_20]);
+  groups.push(["Extended common", EXTENDED_COMMON]);
   groups.push(["Repeated digits", Array.from({ length: 10 }, (_, d) => String(d).repeat(4))]);
 
   const seqs = [];
@@ -48,7 +49,7 @@ function buildPriorityGroups() {
 
   const years = [];
   for (let y = 1940; y <= 2015; y++) years.push(String(y));
-  groups.push(["Likely years (1940-2015)", years]);
+  groups.push(["Likely years", years]);
 
   const pairs = [];
   for (let a = 0; a < 10; a++) {
@@ -56,7 +57,7 @@ function buildPriorityGroups() {
       if (a !== b) pairs.push(`${a}${a}${b}${b}`);
     }
   }
-  groups.push(["Repeated-pair patterns (XYXY)", pairs]);
+  groups.push(["Repeated-pair patterns", pairs]);
 
   return groups;
 }
@@ -69,7 +70,7 @@ function buildFullSearchSpace() {
 
 /**
  * Generator mirroring crack_pin() in PIN-Probability-Sim.py.
- * Yields one attempt at a time: { pin, group, attempt, found }
+ * Yields one attempt at a time: { pin, group, attempt, found, groupSize }
  */
 function* crackPinSteps(targetPin) {
   const tried = new Set();
@@ -96,164 +97,22 @@ function* crackPinSteps(targetPin) {
 }
 
 /* ============================================
-   DRAW DIAL TICKS
-   ============================================ */
-function drawDialTicks() {
-  const group = document.querySelector(".dial-ticks");
-  if (!group) return;
-  const cx = 170, cy = 170, rOuter = 150, rInner = 138;
-  const ticks = 40;
-  for (let i = 0; i < ticks; i++) {
-    const angle = (i / ticks) * Math.PI * 2;
-    const x1 = cx + rInner * Math.cos(angle);
-    const y1 = cy + rInner * Math.sin(angle);
-    const x2 = cx + rOuter * Math.cos(angle);
-    const y2 = cy + rOuter * Math.sin(angle);
-    const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-    line.setAttribute("x1", x1.toFixed(1));
-    line.setAttribute("y1", y1.toFixed(1));
-    line.setAttribute("x2", x2.toFixed(1));
-    line.setAttribute("y2", y2.toFixed(1));
-    group.appendChild(line);
-  }
-}
-
-/* ============================================
-   WEAK PIN GRID + LEAST-LIKELY GRID
+   WEAK PIN GRID
    ============================================ */
 function renderPinGrid() {
   const grid = document.getElementById("pin-grid");
   if (!grid) return;
 
   grid.innerHTML = VERIFIED_TOP_20.map((pin, idx) => {
-    const rank = idx + 1;
-    const fillPct = Math.max(100 - idx * 4.5, 8); // purely visual weighting, rank-based
+    const fillPct = Math.max(100 - idx * 4.5, 8);
     return `
       <div class="pin-chip">
         <span class="digits">${pin}</span>
         <div class="bar-track"><div class="bar-fill" style="width:${fillPct}%"></div></div>
-        <span class="rank">rank #${rank}</span>
+        <span class="rank">rank #${idx + 1}</span>
       </div>
     `;
   }).join("");
-}
-
-function renderSafePinGrid() {
-  const grid = document.getElementById("safe-pin-grid");
-  if (!grid) return;
-
-  grid.innerHTML = LEAST_LIKELY.map((pin, idx) => {
-    // inverted weighting: these are least likely, so bar reflects rarity (short = rare)
-    const fillPct = Math.max(30 - idx * 1.1, 6);
-    return `
-      <div class="pin-chip">
-        <span class="digits">${pin}</span>
-        <div class="bar-track"><div class="bar-fill" style="width:${fillPct}%"></div></div>
-        <span class="rank">bottom #${idx + 1}</span>
-      </div>
-    `;
-  }).join("");
-}
-
-/* ============================================
-   GROUP SIZE CHART
-   ============================================ */
-const FULL_BRUTE_LABEL = "Full brute-force";
-
-function chartData() {
-  const groups = buildPriorityGroups();
-  const tried = new Set();
-  const rows = [];
-
-  for (const [name, pins] of groups) {
-    let netNew = 0;
-    for (const pin of pins) {
-      if (!tried.has(pin)) {
-        tried.add(pin);
-        netNew++;
-      }
-    }
-    rows.push([name, netNew]);
-  }
-
-  rows.push([FULL_BRUTE_LABEL, 10000 - tried.size]);
-  return rows;
-}
-
-function renderGroupChart(matchGroup) {
-  const el = document.getElementById("group-chart");
-  if (!el) return;
-
-  const data = chartData();
-  const maxLog = Math.log10(Math.max(...data.map(([, n]) => n)) + 1);
-
-  el.innerHTML = data.map(([name, count]) => {
-    const pct = Math.max((Math.log10(count + 1) / maxLog) * 100, 3);
-    const isMatch = name === matchGroup;
-    return `
-      <div class="chart-row${isMatch ? " is-match" : ""}">
-        <span class="chart-row-label">${name}</span>
-        <div class="chart-row-track"><div class="chart-row-fill" style="width:${pct.toFixed(1)}%"></div></div>
-        <span class="chart-row-value">${count.toLocaleString()}</span>
-      </div>
-    `;
-  }).join("");
-}
-
-function renderStatsNote(groupCounts, matchGroup, matchAttempt) {
-  const note = document.getElementById("stats-note");
-  const title = document.getElementById("stats-note-title");
-  const table = document.getElementById("stats-note-table");
-  if (!note) return;
-
-  title.textContent = `This run: ${matchAttempt} total attempts across ${Object.keys(groupCounts).length} pass${Object.keys(groupCounts).length > 1 ? "es" : ""}`;
-  table.innerHTML = Object.entries(groupCounts).map(([name, count]) => `
-    <div class="stats-note-cell${name === matchGroup ? " is-match" : ""}">
-      <span class="label">${name}</span>
-      <span class="value">${count} attempt${count === 1 ? "" : "s"}</span>
-    </div>
-  `).join("");
-
-  note.hidden = false;
-}
-
-/* ============================================
-   HERO DIAL
-   Idles through the verified top-20 until the
-   live simulator starts, then mirrors real
-   attempts in real time.
-   ============================================ */
-let dialIdleTimer = null;
-
-function startDialIdleAnimation() {
-  const digitsEl = document.getElementById("dial-digits");
-  const countEl = document.getElementById("dial-count");
-  if (!digitsEl || !countEl) return;
-
-  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  if (reduceMotion) {
-    digitsEl.textContent = "1948";
-    countEl.textContent = "004821";
-    return;
-  }
-
-  let attempt = 0;
-  const sequence = [...VERIFIED_TOP_20, "1948"];
-  let i = 0;
-
-  dialIdleTimer = setInterval(() => {
-    digitsEl.textContent = sequence[i % sequence.length];
-    attempt += Math.floor(Math.random() * 40) + 5;
-    countEl.textContent = String(attempt).padStart(6, "0");
-    i++;
-  }, 900);
-}
-
-function updateDialReadout(pin, attempt) {
-  const digitsEl = document.getElementById("dial-digits");
-  const countEl = document.getElementById("dial-count");
-  if (digitsEl) digitsEl.textContent = pin;
-  if (countEl) countEl.textContent = String(attempt).padStart(6, "0");
 }
 
 /* ============================================
@@ -262,11 +121,9 @@ function updateDialReadout(pin, attempt) {
 const sim = {
   running: false,
   gen: null,
-  targetPin: "1948",
   startTime: 0,
   lastGroup: null,
   lastGroupWasBruteForce: false,
-  groupCounts: {},
 };
 
 function simEls() {
@@ -275,13 +132,16 @@ function simEls() {
     randomizeBtn: document.getElementById("randomize-pin"),
     startBtn: document.getElementById("start-sim"),
     resetBtn: document.getElementById("reset-sim"),
-    currentPin: document.getElementById("sim-current-pin"),
     attemptCount: document.getElementById("sim-attempt-count"),
     elapsed: document.getElementById("sim-elapsed"),
     log: document.getElementById("sim-log"),
     result: document.getElementById("sim-result"),
     resultHeadline: document.getElementById("sim-result-headline"),
     resultDetail: document.getElementById("sim-result-detail"),
+    slots: Array.from(document.querySelectorAll("#sim-slots .slot")),
+    keys: Array.from(document.querySelectorAll("#sim-keypad .key[data-key]")),
+    groupLabel: document.getElementById("sim-group-label"),
+    statusLive: document.getElementById("sim-status-live"),
   };
 }
 
@@ -296,12 +156,30 @@ function validPin(value) {
   return /^[0-9]{4}$/.test(value);
 }
 
+function updateSimVisual(pin, found) {
+  const els = simEls();
+  const keyByDigit = new Map(els.keys.map((k) => [k.dataset.key, k]));
+
+  pin.split("").forEach((digit, i) => {
+    els.slots[i].textContent = digit;
+    els.slots[i].classList.add("is-filled");
+    els.slots[i].classList.toggle("is-match", found);
+
+    const key = keyByDigit.get(digit);
+    if (key) {
+      key.classList.add("is-active");
+      setTimeout(() => key.classList.remove("is-active"), 140);
+    }
+  });
+}
+
 function resetSimUI() {
   const els = simEls();
-  els.currentPin.textContent = "····";
+  els.slots.forEach((s) => { s.textContent = ""; s.classList.remove("is-filled", "is-match"); });
   els.attemptCount.textContent = "0";
   els.elapsed.textContent = "0.00s";
   els.log.textContent = 'Set a target PIN and press "Start search".';
+  els.groupLabel.textContent = "—";
   els.result.hidden = true;
   els.startBtn.disabled = false;
   els.startBtn.textContent = "Start search";
@@ -311,25 +189,19 @@ function resetSimUI() {
 
 function handleStep(step) {
   const els = simEls();
-  els.currentPin.textContent = step.pin;
   els.attemptCount.textContent = String(step.attempt);
   els.elapsed.textContent = ((performance.now() - sim.startTime) / 1000).toFixed(2) + "s";
-  updateDialReadout(step.pin, step.attempt);
-
-  sim.groupCounts[step.group] = (sim.groupCounts[step.group] || 0) + 1;
+  els.groupLabel.textContent = step.group.toLowerCase();
+  updateSimVisual(step.pin, step.found);
 
   if (step.group !== sim.lastGroup) {
     appendLog(`<span class="log-group">↳ Trying: ${step.group} (${step.groupSize} candidates)</span>`);
     sim.lastGroup = step.group;
-    const statusEl = document.getElementById("sim-status-live");
-    if (statusEl) statusEl.textContent = `Now trying: ${step.group}`;
+    if (els.statusLive) els.statusLive.textContent = `Now trying: ${step.group}`;
   }
 
   const isBruteForce = step.group === "Full brute-force";
-  const shouldLog = isBruteForce
-    ? step.attempt % 500 === 0
-    : (step.attempt % 10 === 0 || step.attempt <= 5);
-
+  const shouldLog = isBruteForce ? step.attempt % 500 === 0 : (step.attempt % 10 === 0 || step.attempt <= 5);
   if (shouldLog && !step.found) {
     appendLog(`   attempt ${String(step.attempt).padStart(5, " ")} | tried ${step.pin} | ${els.elapsed.textContent}`);
   }
@@ -339,10 +211,8 @@ function handleStep(step) {
 
 function finishSim(found, step) {
   sim.running = false;
-  clearInterval(dialIdleTimer);
   const els = simEls();
   const elapsedSec = (performance.now() - sim.startTime) / 1000;
-  const statusEl = document.getElementById("sim-status-live");
 
   els.startBtn.disabled = false;
   els.startBtn.textContent = "Start search";
@@ -355,19 +225,15 @@ function finishSim(found, step) {
     els.resultHeadline.textContent = `Cracked in ${step.attempt} attempts (${elapsedSec.toFixed(2)}s)`;
     let detail = `Found via "${step.group}" — this pattern group is tried before a full brute force.`;
     const leastIdx = LEAST_LIKELY.indexOf(step.pin);
-    if (leastIdx !== -1) {
-      detail += ` Note: ${step.pin} is also one of the verified least-common real-world PINs (bottom ${leastIdx + 1}).`;
-    }
+    if (leastIdx !== -1) detail += ` Note: ${step.pin} is also one of the verified least-common real-world PINs (bottom ${leastIdx + 1}).`;
     els.resultDetail.textContent = detail;
-    renderGroupChart(step.group);
-    renderStatsNote(sim.groupCounts, step.group, step.attempt);
-    if (statusEl) statusEl.textContent = `PIN cracked: ${step.pin}, found via ${step.group}, ${step.attempt} attempts, ${elapsedSec.toFixed(2)} seconds.`;
+    if (els.statusLive) els.statusLive.textContent = `PIN cracked: ${step.pin}, found via ${step.group}, ${step.attempt} attempts, ${elapsedSec.toFixed(2)} seconds.`;
   } else {
     appendLog("PIN not found.");
     els.result.hidden = false;
     els.resultHeadline.textContent = "PIN not found";
-    els.resultDetail.textContent = "The full 0000–9999 space was exhausted without a match — this shouldn't happen for a valid 4-digit target.";
-    if (statusEl) statusEl.textContent = "Search finished without finding the PIN.";
+    els.resultDetail.textContent = "The full 0000–9999 space was exhausted without a match.";
+    if (els.statusLive) els.statusLive.textContent = "Search finished without finding the PIN.";
   }
 }
 
@@ -377,15 +243,9 @@ function driveSimFrame() {
 
   for (let i = 0; i < batchSize; i++) {
     const { value, done } = sim.gen.next();
-    if (done || !value) {
-      finishSim(false);
-      return;
-    }
+    if (done || !value) { finishSim(false); return; }
     handleStep(value);
-    if (value.found) {
-      finishSim(true, value);
-      return;
-    }
+    if (value.found) { finishSim(true, value); return; }
   }
   requestAnimationFrame(driveSimFrame);
 }
@@ -395,30 +255,24 @@ function startSim() {
   const target = els.input.value.trim();
   if (!validPin(target)) {
     els.input.focus();
-    els.input.style.borderColor = "var(--danger)";
+    els.input.style.borderColor = "var(--coral)";
     setTimeout(() => (els.input.style.borderColor = ""), 900);
     return;
   }
 
-  clearInterval(dialIdleTimer);
-
   sim.running = true;
-  sim.targetPin = target;
   sim.gen = crackPinSteps(target);
   sim.startTime = performance.now();
   sim.lastGroup = null;
   sim.lastGroupWasBruteForce = false;
-  sim.groupCounts = {};
 
+  els.slots.forEach((s) => { s.textContent = ""; s.classList.remove("is-filled", "is-match"); });
   els.log.textContent = "";
   els.result.hidden = true;
   els.startBtn.disabled = true;
   els.startBtn.textContent = "Searching…";
   els.resetBtn.disabled = true;
   els.input.disabled = true;
-
-  renderGroupChart();
-  document.getElementById("stats-note").hidden = true;
 
   requestAnimationFrame(driveSimFrame);
 }
@@ -430,16 +284,12 @@ function wireSimulator() {
   els.startBtn.addEventListener("click", startSim);
 
   els.randomizeBtn.addEventListener("click", () => {
-    const rand = String(Math.floor(Math.random() * 10000)).padStart(4, "0");
-    els.input.value = rand;
+    els.input.value = String(Math.floor(Math.random() * 10000)).padStart(4, "0");
   });
 
   els.resetBtn.addEventListener("click", () => {
     sim.running = false;
     resetSimUI();
-    startDialIdleAnimation();
-    renderGroupChart();
-    document.getElementById("stats-note").hidden = true;
   });
 
   els.input.addEventListener("input", () => {
@@ -455,17 +305,78 @@ function wireSimulator() {
 }
 
 /* ============================================
-   HERO CTA — scrolls to simulator and runs it
+   HERO PIN-ENTRY SIGNATURE
+   Idle "typing" animation: fills the 4 slots
+   digit by digit, glowing the matching keypad
+   key, then clears and moves to the next PIN.
+   Purely decorative — independent of the real
+   simulator above.
    ============================================ */
-function wireHeroButton() {
-  const btn = document.getElementById("try-demo");
-  if (!btn) return;
-  btn.addEventListener("click", () => {
-    document.querySelector("#simulator").scrollIntoView({ behavior: "smooth", block: "start" });
-    setTimeout(() => {
-      if (!sim.running) startSim();
-    }, 400);
-  });
+function startEntryAnimation() {
+  const slots = Array.from(document.querySelectorAll(".slot"));
+  const keys = Array.from(document.querySelectorAll(".key[data-key]"));
+  const label = document.getElementById("entry-label");
+  if (!slots.length || !keys.length) return;
+
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const keyByDigit = new Map(keys.map((k) => [k.dataset.key, k]));
+
+  const sequence = [...VERIFIED_TOP_20, "1948"];
+
+  if (reduceMotion) {
+    const pin = "1948";
+    pin.split("").forEach((d, i) => {
+      slots[i].textContent = d;
+      slots[i].classList.add("is-filled");
+    });
+    label.textContent = "1948 (secret demo PIN)";
+    return;
+  }
+
+  let pinIndex = 0;
+
+  function clearSlots() {
+    slots.forEach((s) => {
+      s.textContent = "";
+      s.classList.remove("is-filled", "is-match");
+    });
+  }
+
+  function pressKey(digit) {
+    const key = keyByDigit.get(digit);
+    if (!key) return;
+    key.classList.add("is-active");
+    setTimeout(() => key.classList.remove("is-active"), 180);
+  }
+
+  function typePin(pin, onDone) {
+    let i = 0;
+    label.textContent = pinIndex < 20 ? "verified top 20" : "secret demo PIN";
+    const step = () => {
+      if (i >= pin.length) {
+        setTimeout(onDone, 750);
+        return;
+      }
+      const digit = pin[i];
+      slots[i].textContent = digit;
+      slots[i].classList.add("is-filled");
+      pressKey(digit);
+      i++;
+      setTimeout(step, 260);
+    };
+    step();
+  }
+
+  function runNext() {
+    clearSlots();
+    const pin = sequence[pinIndex % sequence.length];
+    typePin(pin, () => {
+      pinIndex++;
+      setTimeout(runNext, 350);
+    });
+  }
+
+  runNext();
 }
 
 /* ============================================
@@ -487,10 +398,7 @@ function wireMobileNav() {
     nav.classList.toggle("is-open", !open);
   });
 
-  nav.querySelectorAll("a").forEach((link) => {
-    link.addEventListener("click", closeNav);
-  });
-
+  nav.querySelectorAll("a").forEach((link) => link.addEventListener("click", closeNav));
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") closeNav();
   });
@@ -500,12 +408,8 @@ function wireMobileNav() {
    INIT
    ============================================ */
 document.addEventListener("DOMContentLoaded", () => {
-  drawDialTicks();
-  startDialIdleAnimation();
   renderPinGrid();
-  renderSafePinGrid();
-  renderGroupChart();
-  wireSimulator();
-  wireHeroButton();
+  startEntryAnimation();
   wireMobileNav();
+  wireSimulator();
 });
