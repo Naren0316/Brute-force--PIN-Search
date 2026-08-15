@@ -3,29 +3,25 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Brute-force PIN Search — PIN Weakness Simulator</title>
+<title>Brute-force PIN Search — Know Your PIN's Odds</title>
 <meta name="description" content="An educational simulation of how predictably humans choose 4-digit PINs, and how fast a patterned search finds them.">
-<meta property="og:title" content="Brute-force PIN Search — PIN Weakness Simulator">
+<meta property="og:title" content="Brute-force PIN Search — Know Your PIN's Odds">
 <meta property="og:description" content="An educational simulation of how predictably humans choose 4-digit PINs, and how fast a patterned search finds them.">
-<meta property="og:type" content="website">
-<meta name="twitter:card" content="summary">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='46' fill='%2312151a' stroke='%23d1a054' stroke-width='4'/%3E%3Ctext x='50' y='63' font-family='monospace' font-size='36' font-weight='700' fill='%23d1a054' text-anchor='middle'%3E%23%3C/text%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='24' fill='%236D5DF6'/%3E%3Ctext x='50' y='66' font-family='monospace' font-size='44' font-weight='700' fill='%23F5F6FB' text-anchor='middle'%3E%23%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <a class="skip-link" href="#top">Skip to main content</a>
 
-<div class="grain"></div>
-
 <header class="topbar">
   <div class="wrap topbar-inner">
     <a class="brand" href="#top">
-      <span class="brand-mark" aria-hidden="true">⌘</span>
-      <span class="brand-text">PIN<span class="dim">/</span>SEARCH</span>
+      <span class="brand-badge" aria-hidden="true">#</span>
+      <span class="brand-text">pin<span class="dim">·</span>search</span>
     </a>
     <button class="nav-toggle" id="nav-toggle" type="button" aria-expanded="false" aria-controls="topnav">
       <span class="visually-hidden">Menu</span>
@@ -33,11 +29,11 @@
     </button>
     <nav class="topnav" id="topnav">
       <a href="#how">How it works</a>
+      <a href="#simulator">Simulator</a>
       <a href="#weak">Weak PINs</a>
-      <a href="#stats">Stats</a>
       <a href="#roadmap">Roadmap</a>
       <a class="repo-link" href="https://github.com/Naren0316/Brute-force--PIN-Search" target="_blank" rel="noopener">
-        Source <span aria-hidden="true">↗</span>
+        View source <span aria-hidden="true">↗</span>
       </a>
     </nav>
   </div>
@@ -48,33 +44,45 @@
   <!-- HERO -->
   <section class="hero wrap">
     <div class="hero-copy">
-      <p class="eyebrow">Educational simulation · local only · v1.0</p>
-      <h1>Most PINs<br>aren't guessed.<br><span class="accent">They're known.</span></h1>
+      <p class="eyebrow">Educational simulation · runs locally</p>
+      <h1>Your PIN isn't<br>a secret.<br><span class="accent">It's a shortcut.</span></h1>
       <p class="lede">
-        A 4-digit PIN has 10,000 possible values — but real people don't pick
-        randomly. This tool simulates how a patterned search, ordered by
-        real-world PIN frequency data, finds a match long before it ever
-        reaches a true brute force.
+        10,000 four-digit combinations exist — but almost nobody picks one at
+        random. This tool tries PINs in the exact order real people choose
+        them, so you can watch how fast "random" turns out not to be.
       </p>
       <div class="hero-actions">
-        <button class="btn btn-primary" id="try-demo" type="button">Run the simulation</button>
-        <a class="btn btn-ghost" href="#how">See how it works</a>
+        <a class="btn btn-primary" href="#simulator">Run the simulation</a>
+        <a class="btn btn-ghost" href="#how">See the search order</a>
       </div>
-      <p class="hero-note">No real devices, accounts, or services are targeted. Everything runs locally.</p>
+      <p class="hero-note">No real devices, accounts, or services are targeted — this is a local pattern demo.</p>
     </div>
 
-    <div class="hero-dial" aria-hidden="true">
-      <svg viewBox="0 0 340 340" class="dial-svg">
-        <circle cx="170" cy="170" r="150" class="dial-ring-outer"></circle>
-        <circle cx="170" cy="170" r="118" class="dial-ring-inner"></circle>
-        <g class="dial-ticks"></g>
-        <g class="dial-readout">
-          <rect x="80" y="150" width="180" height="40" rx="4" class="readout-bg"></rect>
-          <text x="170" y="178" text-anchor="middle" class="readout-text" id="dial-digits">0000</text>
-        </g>
-        <circle cx="170" cy="170" r="6" class="dial-pin"></circle>
-      </svg>
-      <p class="dial-caption">simulated attempt <span id="dial-count">000000</span></p>
+    <div class="hero-visual" aria-hidden="true">
+      <div class="entry-card">
+        <div class="entry-slots" id="entry-slots">
+          <span class="slot" data-slot="0"></span>
+          <span class="slot" data-slot="1"></span>
+          <span class="slot" data-slot="2"></span>
+          <span class="slot" data-slot="3"></span>
+        </div>
+        <p class="entry-caption">trying <span id="entry-label">verified top 20</span></p>
+
+        <div class="keypad" id="keypad">
+          <button class="key" data-key="1" tabindex="-1"><span>1</span></button>
+          <button class="key" data-key="2" tabindex="-1"><span>2</span><small>ABC</small></button>
+          <button class="key" data-key="3" tabindex="-1"><span>3</span><small>DEF</small></button>
+          <button class="key" data-key="4" tabindex="-1"><span>4</span><small>GHI</small></button>
+          <button class="key" data-key="5" tabindex="-1"><span>5</span><small>JKL</small></button>
+          <button class="key" data-key="6" tabindex="-1"><span>6</span><small>MNO</small></button>
+          <button class="key" data-key="7" tabindex="-1"><span>7</span><small>PQRS</small></button>
+          <button class="key" data-key="8" tabindex="-1"><span>8</span><small>TUV</small></button>
+          <button class="key" data-key="9" tabindex="-1"><span>9</span><small>WXYZ</small></button>
+          <button class="key key-ghost" tabindex="-1" disabled></button>
+          <button class="key" data-key="0" tabindex="-1"><span>0</span></button>
+          <button class="key key-ghost" tabindex="-1" disabled></button>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -82,145 +90,142 @@
   <section id="simulator" class="simulator wrap">
     <p class="section-eyebrow">Live in your browser</p>
     <h2>Run the search yourself</h2>
-    <p class="section-lede">Set a target PIN and watch the exact pass order from <code>PIN-Probability-Sim.py</code> execute live — ported line for line, no server involved.</p>
+    <p class="section-lede">Set a target PIN and watch the exact pass order from <code>PIN-Probability-Sim.py</code> execute live on the keypad below — ported line for line, nothing sent anywhere.</p>
 
-    <div class="sim-panel">
-      <div class="sim-controls">
+    <div class="sim-layout">
+      <div class="sim-controls-panel">
         <label class="sim-field">
           <span>Target PIN</span>
           <input type="text" id="target-pin" maxlength="4" inputmode="numeric" pattern="[0-9]{4}" value="1948">
         </label>
-        <button class="btn btn-ghost btn-sm" id="randomize-pin" type="button">Randomize</button>
-        <button class="btn btn-primary btn-sm" id="start-sim" type="button">Start search</button>
-        <button class="btn btn-ghost btn-sm" id="reset-sim" type="button" disabled>Reset</button>
+        <div class="sim-btn-row">
+          <button class="btn btn-ghost btn-sm" id="randomize-pin" type="button">Randomize</button>
+          <button class="btn btn-primary btn-sm" id="start-sim" type="button">Start search</button>
+          <button class="btn btn-ghost btn-sm" id="reset-sim" type="button" disabled>Reset</button>
+        </div>
+
+        <div class="sim-readout-row">
+          <div class="sim-readout">
+            <span class="sim-readout-label">attempts</span>
+            <span class="sim-readout-value" id="sim-attempt-count">0</span>
+          </div>
+          <div class="sim-readout">
+            <span class="sim-readout-label">elapsed</span>
+            <span class="sim-readout-value" id="sim-elapsed">0.00s</span>
+          </div>
+        </div>
+
+        <pre class="sim-log" id="sim-log" aria-live="off">Set a target PIN and press "Start search".</pre>
+        <p class="visually-hidden" id="sim-status-live" aria-live="polite" aria-atomic="true"></p>
+
+        <div class="sim-result" id="sim-result" hidden>
+          <p class="sim-result-headline" id="sim-result-headline"></p>
+          <p class="sim-result-detail" id="sim-result-detail"></p>
+        </div>
       </div>
 
-      <div class="sim-readout-row">
-        <div class="sim-readout">
-          <span class="sim-readout-label">current attempt</span>
-          <span class="sim-readout-value" id="sim-current-pin">····</span>
+      <div class="entry-card sim-entry-card">
+        <div class="entry-slots" id="sim-slots">
+          <span class="slot" data-slot="0"></span>
+          <span class="slot" data-slot="1"></span>
+          <span class="slot" data-slot="2"></span>
+          <span class="slot" data-slot="3"></span>
         </div>
-        <div class="sim-readout">
-          <span class="sim-readout-label">attempts</span>
-          <span class="sim-readout-value" id="sim-attempt-count">0</span>
-        </div>
-        <div class="sim-readout">
-          <span class="sim-readout-label">elapsed</span>
-          <span class="sim-readout-value" id="sim-elapsed">0.00s</span>
-        </div>
-      </div>
+        <p class="entry-caption" id="sim-caption">trying <span id="sim-group-label">—</span></p>
 
-      <pre class="sim-log" id="sim-log" aria-live="off">Set a target PIN and press "Start search".</pre>
-      <p class="visually-hidden" id="sim-status-live" aria-live="polite" aria-atomic="true"></p>
-
-      <div class="sim-result" id="sim-result" hidden>
-        <p class="sim-result-headline" id="sim-result-headline"></p>
-        <p class="sim-result-detail" id="sim-result-detail"></p>
+        <div class="keypad" id="sim-keypad">
+          <button class="key" data-key="1" tabindex="-1"><span>1</span></button>
+          <button class="key" data-key="2" tabindex="-1"><span>2</span><small>ABC</small></button>
+          <button class="key" data-key="3" tabindex="-1"><span>3</span><small>DEF</small></button>
+          <button class="key" data-key="4" tabindex="-1"><span>4</span><small>GHI</small></button>
+          <button class="key" data-key="5" tabindex="-1"><span>5</span><small>JKL</small></button>
+          <button class="key" data-key="6" tabindex="-1"><span>6</span><small>MNO</small></button>
+          <button class="key" data-key="7" tabindex="-1"><span>7</span><small>PQRS</small></button>
+          <button class="key" data-key="8" tabindex="-1"><span>8</span><small>TUV</small></button>
+          <button class="key" data-key="9" tabindex="-1"><span>9</span><small>WXYZ</small></button>
+          <button class="key key-ghost" tabindex="-1" disabled></button>
+          <button class="key" data-key="0" tabindex="-1"><span>0</span></button>
+          <button class="key key-ghost" tabindex="-1" disabled></button>
+        </div>
       </div>
     </div>
   </section>
 
   <!-- HOW IT WORKS -->
   <section id="how" class="how wrap">
-    <p class="section-eyebrow">The search order</p>
-    <h2>Four passes, in this exact sequence</h2>
-    <p class="section-lede">The engine never scans 0000&nbsp;→&nbsp;9999 first. It exhausts the patterns humans actually pick, in order of documented likelihood, before falling back to a full sweep.</p>
+    <p class="section-eyebrow">The actual search order</p>
+    <h2>Four passes. Always this order.</h2>
+    <p class="section-lede">This is a real sequence, not a design flourish — the script never scans 0000&nbsp;→&nbsp;9999 first. It exhausts the patterns people actually pick, ranked by how often they show up, before falling back to brute force.</p>
 
     <ol class="pass-list">
       <li class="pass">
         <span class="pass-num">01</span>
         <div>
           <h3>Verified top 20</h3>
-          <p>PINs like <code>1234</code>, <code>0000</code>, and <code>1212</code> — ranked from real-world leaked-PIN frequency studies.</p>
+          <p><code>1234</code>, <code>0000</code>, <code>1212</code> — pulled straight from real leaked-PIN frequency studies.</p>
         </div>
       </li>
       <li class="pass">
         <span class="pass-num">02</span>
         <div>
           <h3>Extended common set</h3>
-          <p>Documented but unranked patterns: repeat digits, birth-year-shaped numbers, calendar dates.</p>
+          <p>Documented but unranked patterns: repeats, keyboard-adjacent digits, calendar-shaped numbers.</p>
         </div>
       </li>
       <li class="pass">
         <span class="pass-num">03</span>
         <div>
           <h3>Structural patterns</h3>
-          <p>Sequences (<code>2345</code>), repeated pairs (<code>XYXY</code>), and every likely birth year from 1940–2015.</p>
+          <p>Sequences like <code>2345</code>, repeated pairs like <code>7171</code>, and every plausible birth year from 1940–2015.</p>
         </div>
       </li>
       <li class="pass">
         <span class="pass-num">04</span>
         <div>
           <h3>Full brute force</h3>
-          <p>Only if nothing above matches — every remaining value from <code>0000</code> to <code>9999</code>, in order.</p>
+          <p>Only if nothing above hits — the remaining values from <code>0000</code> to <code>9999</code>, in order.</p>
         </div>
       </li>
     </ol>
   </section>
 
-  <!-- WEAK PIN SHOWCASE -->
+  <!-- WEAK PIN GRID -->
   <section id="weak" class="weak wrap">
     <p class="section-eyebrow">Real frequency data</p>
-    <h2>The 20 PINs to never use</h2>
-    <p class="section-lede">These aren't estimates — they're the highest-frequency PINs found in studies of leaked 4-digit numeric passcodes.</p>
+    <h2>The 20 PINs to retire today</h2>
+    <p class="section-lede">Pulled from studies of leaked 4-digit PIN datasets — these aren't guesses, they're the most-repeated values found in the wild.</p>
 
     <div class="pin-grid" id="pin-grid">
       <!-- populated by script.js -->
     </div>
-
-    <div class="least-likely">
-      <h3>21 PINs least likely to be guessed first</h3>
-      <p class="least-likely-lede">These sit at the bottom of real-world frequency data — no obvious pattern, so they're the last values a patterned search reaches.</p>
-      <div class="pin-grid pin-grid-safe" id="safe-pin-grid">
-        <!-- populated by script.js -->
-      </div>
-    </div>
   </section>
 
-  <!-- STATS -->
-  <section id="stats" class="stats wrap">
-    <p class="section-eyebrow">By the numbers</p>
-    <h2>How the search space breaks down</h2>
-    <p class="section-lede">Each pass covers a tiny slice of the full 10,000-value space — bar length is log-scaled so the smaller groups stay visible next to the brute-force tail.</p>
-
-    <div class="chart-panel">
-      <div class="chart-bars" id="group-chart">
-        <!-- populated by script.js -->
-      </div>
-    </div>
-
-    <div class="stats-note" id="stats-note" hidden>
-      <p class="stats-note-title" id="stats-note-title"></p>
-      <div class="stats-note-table" id="stats-note-table"></div>
-    </div>
-  </section>
-
-  <!-- ROADMAP (transparent build-in-public status) -->
+  <!-- ROADMAP -->
   <section id="roadmap" class="roadmap wrap">
     <p class="section-eyebrow">Build status</p>
     <h2>What's live vs. what's next</h2>
     <div class="roadmap-grid">
       <div class="roadmap-card is-live">
         <span class="status-dot"></span>
-        <h3>Day 1 — Shell &amp; design system</h3>
-        <p>Hero, pattern breakdown, weak-PIN reference grid.</p>
+        <h3>Day 1 — Design system &amp; shell</h3>
+        <p>Hero PIN-entry signature, pass breakdown, weak-PIN reference grid.</p>
       </div>
       <div class="roadmap-card is-live">
         <span class="status-dot"></span>
         <h3>Day 2 — Live simulator</h3>
-        <p>Ported search logic runs in-browser with real-time attempt readout.</p>
+        <p>The keypad wires up to the real search logic and types live attempts.</p>
       </div>
-      <div class="roadmap-card is-live">
+      <div class="roadmap-card">
         <span class="status-dot"></span>
-        <h3>Day 3 — Stats views</h3>
-        <p>Charts for attempts-per-group and least-common PIN rankings.</p>
+        <h3>Day 3 — Stats &amp; least-likely PINs</h3>
+        <p>Group-size chart and the bottom-ranked, hardest-to-guess PINs.</p>
       </div>
-      <div class="roadmap-card is-live">
+      <div class="roadmap-card">
         <span class="status-dot"></span>
         <h3>Day 4 — Polish &amp; accessibility</h3>
         <p>Responsive pass, focus states, reduced-motion support.</p>
       </div>
-      <div class="roadmap-card is-live">
+      <div class="roadmap-card">
         <span class="status-dot"></span>
         <h3>Day 5 — Ship</h3>
         <p>README rewrite, GitHub Pages deploy, final QA.</p>
