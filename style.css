@@ -558,6 +558,97 @@ code {
   color: var(--ink-faint);
 }
 
+/* safe / least-likely variant */
+.least-likely {
+  margin-top: 56px;
+  padding-top: 40px;
+  border-top: 1px solid var(--line);
+}
+.least-likely h3 { font-family: var(--font-display); font-size: 1.25rem; margin: 0 0 8px; font-weight: 700; }
+.least-likely-lede { color: var(--ink-soft); max-width: 60ch; margin: 0 0 24px; }
+.pin-grid-safe .pin-chip:hover { border-color: var(--mint); }
+.pin-grid-safe .pin-chip .bar-fill { background: var(--mint); }
+
+/* ============================================
+   STATS / CHART
+   ============================================ */
+.stats { padding: 84px 28px; }
+
+.chart-panel {
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: 30px;
+}
+
+.chart-bars { display: flex; flex-direction: column; gap: 14px; }
+.chart-row {
+  display: grid;
+  grid-template-columns: 200px 1fr 90px;
+  align-items: center;
+  gap: 14px;
+}
+.chart-row-label {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+}
+.chart-row-track {
+  height: 22px;
+  background: var(--bg-sunken);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+.chart-row-fill {
+  height: 100%;
+  background: var(--violet-tint);
+  border-right: 3px solid var(--violet);
+  border-radius: var(--radius-full);
+  transition: background 0.2s var(--ease), border-color 0.2s var(--ease);
+}
+.chart-row-value {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--ink-faint);
+  text-align: right;
+}
+.chart-row.is-match .chart-row-label { color: #0a7a5a; font-weight: 700; }
+.chart-row.is-match .chart-row-fill { background: var(--mint-tint); border-color: var(--mint); }
+.chart-row.is-match .chart-row-value { color: var(--mint); font-weight: 700; }
+
+.stats-note {
+  margin-top: 22px;
+  border: 1px solid var(--mint);
+  background: var(--mint-tint);
+  border-radius: var(--radius-md);
+  padding: 20px 22px;
+}
+.stats-note-title {
+  font-family: var(--font-display);
+  color: #0a7a5a;
+  margin: 0 0 12px;
+  font-size: 0.98rem;
+  font-weight: 700;
+}
+.stats-note-table {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 10px;
+}
+.stats-note-cell {
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+}
+.stats-note-cell .label { color: var(--ink-faint); display: block; margin-bottom: 4px; }
+.stats-note-cell .value { color: var(--ink); font-weight: 700; }
+.stats-note-cell.is-match { border-color: var(--mint); }
+.stats-note-cell.is-match .value { color: #0a7a5a; }
+
 /* ============================================
    ROADMAP
    ============================================ */
@@ -645,4 +736,6 @@ code {
 @media (max-width: 480px) {
   .wrap { padding: 0 18px; }
   .pass { grid-template-columns: 40px 1fr; gap: 14px; padding: 20px; }
+  .chart-row { grid-template-columns: 1fr; gap: 4px; }
+  .chart-row-value { text-align: left; }
 }
