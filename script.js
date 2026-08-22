@@ -97,7 +97,7 @@ function* crackPinSteps(targetPin) {
 }
 
 /* ============================================
-   WEAK PIN GRID
+   WEAK PIN GRID + LEAST-LIKELY GRID
    ============================================ */
 function renderPinGrid() {
   const grid = document.getElementById("pin-grid");
@@ -115,6 +115,85 @@ function renderPinGrid() {
   }).join("");
 }
 
+function renderSafePinGrid() {
+  const grid = document.getElementById("safe-pin-grid");
+  if (!grid) return;
+
+  grid.innerHTML = LEAST_LIKELY.map((pin, idx) => {
+    const fillPct = Math.max(30 - idx * 1.1, 6);
+    return `
+      <div class="pin-chip">
+        <span class="digits">${pin}</span>
+        <div class="bar-track"><div class="bar-fill" style="width:${fillPct}%"></div></div>
+        <span class="rank">bottom #${idx + 1}</span>
+      </div>
+    `;
+  }).join("");
+}
+
+/* ============================================
+   GROUP SIZE CHART
+   ============================================ */
+const FULL_BRUTE_LABEL = "Full brute-force";
+
+function chartData() {
+  const groups = buildPriorityGroups();
+  const tried = new Set();
+  const rows = [];
+
+  for (const [name, pins] of groups) {
+    let netNew = 0;
+    for (const pin of pins) {
+      if (!tried.has(pin)) {
+        tried.add(pin);
+        netNew++;
+      }
+    }
+    rows.push([name, netNew]);
+  }
+
+  rows.push([FULL_BRUTE_LABEL, 10000 - tried.size]);
+  return rows;
+}
+
+function renderGroupChart(matchGroup) {
+  const el = document.getElementById("group-chart");
+  if (!el) return;
+
+  const data = chartData();
+  const maxLog = Math.log10(Math.max(...data.map(([, n]) => n)) + 1);
+
+  el.innerHTML = data.map(([name, count]) => {
+    const pct = Math.max((Math.log10(count + 1) / maxLog) * 100, 3);
+    const isMatch = name === matchGroup;
+    return `
+      <div class="chart-row${isMatch ? " is-match" : ""}">
+        <span class="chart-row-label">${name}</span>
+        <div class="chart-row-track"><div class="chart-row-fill" style="width:${pct.toFixed(1)}%"></div></div>
+        <span class="chart-row-value">${count.toLocaleString()}</span>
+      </div>
+    `;
+  }).join("");
+}
+
+function renderStatsNote(groupCounts, matchGroup, matchAttempt) {
+  const note = document.getElementById("stats-note");
+  const title = document.getElementById("stats-note-title");
+  const table = document.getElementById("stats-note-table");
+  if (!note) return;
+
+  const groupNum = Object.keys(groupCounts).length;
+  title.textContent = `This run: ${matchAttempt} total attempts across ${groupNum} pass${groupNum > 1 ? "es" : ""}`;
+  table.innerHTML = Object.entries(groupCounts).map(([name, count]) => `
+    <div class="stats-note-cell${name === matchGroup ? " is-match" : ""}">
+      <span class="label">${name}</span>
+      <span class="value">${count} attempt${count === 1 ? "" : "s"}</span>
+    </div>
+  `).join("");
+
+  note.hidden = false;
+}
+
 /* ============================================
    LIVE SIMULATOR
    ============================================ */
@@ -124,6 +203,7 @@ const sim = {
   startTime: 0,
   lastGroup: null,
   lastGroupWasBruteForce: false,
+  groupCounts: {},
 };
 
 function simEls() {
@@ -194,6 +274,8 @@ function handleStep(step) {
   els.groupLabel.textContent = step.group.toLowerCase();
   updateSimVisual(step.pin, step.found);
 
+  sim.groupCounts[step.group] = (sim.groupCounts[step.group] || 0) + 1;
+
   if (step.group !== sim.lastGroup) {
     appendLog(`<span class="log-group">↳ Trying: ${step.group} (${step.groupSize} candidates)</span>`);
     sim.lastGroup = step.group;
@@ -228,6 +310,8 @@ function finishSim(found, step) {
     if (leastIdx !== -1) detail += ` Note: ${step.pin} is also one of the verified least-common real-world PINs (bottom ${leastIdx + 1}).`;
     els.resultDetail.textContent = detail;
     if (els.statusLive) els.statusLive.textContent = `PIN cracked: ${step.pin}, found via ${step.group}, ${step.attempt} attempts, ${elapsedSec.toFixed(2)} seconds.`;
+    renderGroupChart(step.group);
+    renderStatsNote(sim.groupCounts, step.group, step.attempt);
   } else {
     appendLog("PIN not found.");
     els.result.hidden = false;
@@ -265,6 +349,7 @@ function startSim() {
   sim.startTime = performance.now();
   sim.lastGroup = null;
   sim.lastGroupWasBruteForce = false;
+  sim.groupCounts = {};
 
   els.slots.forEach((s) => { s.textContent = ""; s.classList.remove("is-filled", "is-match"); });
   els.log.textContent = "";
@@ -273,6 +358,10 @@ function startSim() {
   els.startBtn.textContent = "Searching…";
   els.resetBtn.disabled = true;
   els.input.disabled = true;
+
+  renderGroupChart();
+  const note = document.getElementById("stats-note");
+  if (note) note.hidden = true;
 
   requestAnimationFrame(driveSimFrame);
 }
@@ -290,6 +379,9 @@ function wireSimulator() {
   els.resetBtn.addEventListener("click", () => {
     sim.running = false;
     resetSimUI();
+    renderGroupChart();
+    const note = document.getElementById("stats-note");
+    if (note) note.hidden = true;
   });
 
   els.input.addEventListener("input", () => {
@@ -409,6 +501,8 @@ function wireMobileNav() {
    ============================================ */
 document.addEventListener("DOMContentLoaded", () => {
   renderPinGrid();
+  renderSafePinGrid();
+  renderGroupChart();
   startEntryAnimation();
   wireMobileNav();
   wireSimulator();
