@@ -236,7 +236,7 @@ function validPin(value) {
   return /^[0-9]{4}$/.test(value);
 }
 
-function updateSimVisual(pin, found) {
+function updateSimVisual(pin, found, glow) {
   const els = simEls();
   const keyByDigit = new Map(els.keys.map((k) => [k.dataset.key, k]));
 
@@ -245,10 +245,12 @@ function updateSimVisual(pin, found) {
     els.slots[i].classList.add("is-filled");
     els.slots[i].classList.toggle("is-match", found);
 
-    const key = keyByDigit.get(digit);
-    if (key) {
-      key.classList.add("is-active");
-      setTimeout(() => key.classList.remove("is-active"), 140);
+    if (glow) {
+      const key = keyByDigit.get(digit);
+      if (key) {
+        key.classList.add("is-active");
+        setTimeout(() => key.classList.remove("is-active"), 140);
+      }
     }
   });
 }
@@ -272,7 +274,12 @@ function handleStep(step) {
   els.attemptCount.textContent = String(step.attempt);
   els.elapsed.textContent = ((performance.now() - sim.startTime) / 1000).toFixed(2) + "s";
   els.groupLabel.textContent = step.group.toLowerCase();
-  updateSimVisual(step.pin, step.found);
+
+  const isBruteForce = step.group === "Full brute-force";
+  // Full brute-force batches ~60 attempts/frame — flashing the keypad glow
+  // that fast is a real photosensitivity risk, so only glow on the slower
+  // pattern-group passes (or on the final successful match either way).
+  updateSimVisual(step.pin, step.found, !isBruteForce || step.found);
 
   sim.groupCounts[step.group] = (sim.groupCounts[step.group] || 0) + 1;
 
@@ -282,7 +289,6 @@ function handleStep(step) {
     if (els.statusLive) els.statusLive.textContent = `Now trying: ${step.group}`;
   }
 
-  const isBruteForce = step.group === "Full brute-force";
   const shouldLog = isBruteForce ? step.attempt % 500 === 0 : (step.attempt % 10 === 0 || step.attempt <= 5);
   if (shouldLog && !step.found) {
     appendLog(`   attempt ${String(step.attempt).padStart(5, " ")} | tried ${step.pin} | ${els.elapsed.textContent}`);
