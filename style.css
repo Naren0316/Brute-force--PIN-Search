@@ -8,7 +8,7 @@
 
   --ink: #14162b;
   --ink-soft: #5b5e78;
-  --ink-faint: #8b8ea8;
+  --ink-faint: #6a6d84;
 
   --line: rgba(20, 22, 43, 0.08);
   --line-strong: rgba(20, 22, 43, 0.14);
@@ -726,9 +726,15 @@ code {
     max-height: 0;
     overflow: hidden;
     opacity: 0;
-    transition: max-height 0.25s var(--ease), opacity 0.2s var(--ease);
+    visibility: hidden;
+    transition: max-height 0.25s var(--ease), opacity 0.2s var(--ease), visibility 0s linear 0.25s;
   }
-  .topnav.is-open { max-height: 400px; opacity: 1; }
+  .topnav.is-open {
+    max-height: 400px;
+    opacity: 1;
+    visibility: visible;
+    transition: max-height 0.25s var(--ease), opacity 0.2s var(--ease), visibility 0s linear 0s;
+  }
   .topnav a { padding: 16px 28px; border-bottom: 1px solid var(--line); }
   .repo-link { margin: 16px 28px; text-align: center; }
 }
