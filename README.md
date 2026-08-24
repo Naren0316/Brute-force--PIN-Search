@@ -17,12 +17,12 @@ Educational project that simulates 4-digit PIN guessing strategies using real-wo
 
 ## The front end
 
-A dark "vault dossier"-themed site that turns the simulation into something you can watch happen:
+A bright, keypad-themed site that turns the simulation into something you can watch happen — built around a literal PIN-entry UI (masked slots + numeric keypad) instead of an abstract visualization, since that's the object everyone already recognizes from ATMs and phone lock screens.
 
-- **Live simulator** — set any 4-digit target PIN and watch the real search order run in your browser: verified top-20 → extended common → repeated digits → sequential patterns → likely years → repeated pairs → full brute force.
+- **Live simulator** — set any 4-digit target PIN and watch the real search order run on-screen: verified top-20 → extended common → repeated digits → sequential patterns → likely years → repeated pairs → full brute force. The keypad keys light up as each digit is "typed."
 - **Weak-PIN reference grid** — the 20 most common real-world PINs, and the 21 least common, side by side.
 - **Stats view** — a log-scaled chart of how the 10,000-value space splits across passes, with a live breakdown of exactly how many attempts each pass took on your last run.
-- Fully responsive, keyboard-navigable, and respects `prefers-reduced-motion`.
+- Fully responsive, keyboard-navigable, and respects `prefers-reduced-motion`. The keypad's flash animation is also throttled during the fast brute-force pass to avoid rapid strobing.
 
 No build step, no dependencies — it's plain HTML/CSS/JS.
 
@@ -53,6 +53,12 @@ This repo includes a workflow that deploys automatically — you only need to fl
 4. Your site will be live at `https://<your-username>.github.io/Brute-force--PIN-Search/` within a minute or two.
 
 No further configuration needed — `.github/workflows/deploy.yml` handles the build and publish.
+
+## Design notes
+
+- **Palette:** cool off-white background, deep-navy ink text, electric violet as the primary accent, coral for "weak" PINs, mint for "safe"/success states.
+- **Type:** Bricolage Grotesque for headings, Inter for body copy, Space Mono for PIN digits and data readouts.
+- **Signature element:** the PIN-entry card (masked slots + keypad) in the hero and the live simulator — grounded directly in the subject matter rather than an abstract metaphor.
 
 ## Future plans
 
